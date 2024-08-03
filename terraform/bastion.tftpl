@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# Install necessary packages
+yum update -y
+yum install java-1.8.0 -y
+yum install java-17-amazon-corretto-devel.x86_64 -y
+yum install wget -y
+wget https://archive.apache.org/dist/kafka/3.4.0/kafka_2.13-3.4.0.tgz
+tar -xzf kafka_2.13-3.4.0.tgz
+rm kafka_2.13-3.4.0.tgz
+
+yum install -y python3 python3-pip
+pip3 install kafka-python requests boto3
+
+# Create a txt file to assign the address of the MSK bootstrap servers
+cat > /home/ec2-user/bootstrap-servers <<- "EOF"
+${bootstrap_server_1}
+${bootstrap_server_2}
+${bootstrap_server_3}
+EOF
+
+# Create producer_bastion.py
+cat <<EOF > /home/ec2-user/producer_bastion.py
+import requests
+import json
+from kafka import KafkaProducer
+import time
+
+
+# Define Open Weather API key
+API_KEY = '${api_key}'
+
+# Define latitude and longitude of Jakarta, Indonesia
+LAT = '${lat}'
+LON = '${lon}'
+
+# Define MSK topic and broker
+KAFKA_TOPIC = '${kafka_topic}'
+KAFKA_BROKER = '${bootstrap_server_1},${bootstrap_server_2},${bootstrap_server_3}'
+
+# Set up Kafka producer
+producer = KafkaProducer(
+    bootstrap_servers=KAFKA_BROKER,
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
+# Function to fetch weather data and publish to Kafka
+def fetch_and_publish():
+    url = f'https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}'
+    response = requests.get(url)
+    data = response.json()
+    producer.send(KAFKA_TOPIC, value=data)
+    print(f"Published: {data}")
+
+if __name__ == "__main__":
+    while True:
+        fetch_and_publish()
+        time.sleep(60)
+EOF
+
+# Create consumer_bastion.py
+cat <<EOF > /home/ec2-user/consumer_bastion.py
+import boto3
+from kafka import KafkaConsumer
+import json
+
+# Define MSK topic and broker
+KAFKA_TOPIC = '${kafka_topic}'
+KAFKA_BROKER = '${bootstrap_server_1},${bootstrap_server_2},${bootstrap_server_3}'
+
+# Define S3 bucket destination to store the data
+S3_BUCKET = '${s3_bucket}'
+
+# Set up S3 client
+s3 = boto3.client('s3')
+
+# Set up Kafka consumer
+consumer = KafkaConsumer(
+    KAFKA_TOPIC,
+    bootstrap_servers=KAFKA_BROKER,
+    value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+)
+
+# Function to consume streaming weather data from the Kafka topic and write it to S3 bucket
+def consume_and_store():
+    for message in consumer:
+        data = message.value
+        file_name = f"data/weather_data_{message.timestamp}.json"
+        s3.put_object(Bucket=S3_BUCKET, Key=file_name, Body=json.dumps(data))
+        print(f'{file_name} is stored on {S3_BUCKET}/data/')
+
+if __name__ == "__main__":
+    consume_and_store()
+EOF
+
+# Put Kafka to the path
+echo "PATH=$PATH:/bin:/usr/local/bin:/usr/bin:/kafka_2.13-3.4.0/bin" >> /home/ec2-user/.bash_profile
+
+# Refresh bash_profile
+source ~/.bash_profile
+
+# Ensure the producer and consumer can be executed
+chmod u+x /home/ec2-user/producer_bastion.py /home/ec2-user/consumer_bastion.py
+
+# Execute the producer script in the background
+nohup python3 /home/ec2-user/producer_bastion.py &
+
+# Wait for 60 seconds
+sleep 60
+
+# Execute the consumer script
+nohup python3 /home/ec2-user/consumer_bastion.py &
