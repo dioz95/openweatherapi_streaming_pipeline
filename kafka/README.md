@@ -19,7 +19,7 @@ export LON=106.8229
 export KAFKA_TOPIC=<topic-name>
 export KAFKA_BROKER=<local-kafka-server>
 ```
-This variable will not be pushed to github, as it is already listed in the `.gitignore`.
+  This variable will not be pushed to github, as it is already listed in the `.gitignore`.
 5. Allow direnv to access the `.envrc` file:
 ```bash
 direnv allow
