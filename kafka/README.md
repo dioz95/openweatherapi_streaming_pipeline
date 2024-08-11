@@ -30,7 +30,7 @@ cd ~/kafka-3.7.1-src
 bin/zookeeper-server-start.sh config/zookeeper.properties
 ```
    Then, open new terminal tab, go inside your local Kafka installation directory again, and start the Kafka:
-```
+```bash
 cd ~/kafka-3.7.1-src
 bin/kafka-server-start.sh config/server.properties
 ```
