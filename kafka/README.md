@@ -4,9 +4,9 @@ This directory contains `producer.py` and `consumer.py` that run in local Kafka 
 ## How to reproduce
 Assume that all the prerequisites listed in the root directory have been installed in your local machine, you can follow these following instructions,
 1. Open terminal, and go to the `/kafka` directory. Assume you already in the root directory of this repository, run this command:
-```bash
-cd kafka
-```
+  ```bash
+  cd kafka
+  ```
 3. Create new python environment and install the dependencies:
 ```bash
 pip install -r requirements.txt
