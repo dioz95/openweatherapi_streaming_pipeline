@@ -5,6 +5,7 @@ This repository has 3 major directory that you can visit in this following order
 - `/kafka`: Demonstrate Kafka producer and consumer deployed in local environment.
 - `/terraform`: Demonstrate a full end-to-end data pipeline that build using AWS services, provisioned by Terraform.
 - `/.github/workflows`: Demonstrate CI/CD pipeline using Github Actions.
+
 The `/assets` directory contains documented screenshot of a working system.
 
 Detailed documentation of the code is written separately in each directory.
