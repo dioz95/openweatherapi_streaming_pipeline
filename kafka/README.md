@@ -4,14 +4,16 @@ This directory contains `producer.py` and `consumer.py` that run in local Kafka 
 ## How to reproduce
 Assume that all the prerequisites listed in the root directory have been installed in your local machine, you can follow these following instructions,
 1. Open terminal, and go to the `/kafka` directory. Assume you already in the root directory of this repository, run this command:
+   
    ```bash
    cd kafka
    ```
-2. Create new python environment and install the dependencies:
+   
+3. Create new python environment and install the dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Create `.envrc` file to store environmental variables:
+4. Create `.envrc` file to store environmental variables:
    ```
   export API_KEY=<your-openweather-api-key>
   export LAT=6.1944
@@ -20,7 +22,7 @@ Assume that all the prerequisites listed in the root directory have been install
   export KAFKA_BROKER=<local-kafka-server>
    ```
 This variable will not be pushed to github, as it is already listed in the `.gitignore`.
-4. Allow direnv to access the `.envrc` file:
+5. Allow direnv to access the `.envrc` file:
 ```bash
 direnv allow
 ```
