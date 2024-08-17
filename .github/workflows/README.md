@@ -1,6 +1,21 @@
 # CI/CD Using Github Actions
 
-`terraform.yml` files automated the terraform code formatting, initialization, validation, and deployment. The job will be executed when there are changes made in `./terraform/**` directories, except in the `README.md` file inside the `./terraform` directory. 
+`terraform.yml` files automated the terraform code formatting, initialization, validation, and deployment. The job will be executed when there are changes made in `./terraform/**` directories, except in the `README.md` file inside the `./terraform` directory, based on this following statement:
+```yaml
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/**
+      - '!terraform/README.md'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - terraform/**
+      - '!terraform/README.md'
+```
 
 Specifically for the `terraform plan` and `terraform apply` stages, these stage will only be executed if an event specified in the `if` statement:
 
