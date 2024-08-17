@@ -1,7 +1,7 @@
 # Deployment with Terraform
 In this project, Terraform is used to deploy the whole infrastructure used to enable the streaming data pipeline. The complete deployed infrastructure can be seen in this following diagram,
 
-<p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/flow_diagram.png" /></p>
+<p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/flow_diagram.png" width="400" height="400" /></p>
 <p align="center"><strong>Fig 1.</strong>Infrastructure Diagram</p>
 
 The working data pipeline is built on top of this main AWS instances:
