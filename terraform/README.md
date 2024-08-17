@@ -55,7 +55,7 @@ resource "aws_msk_cluster" "kafka" {
 }
 ```
 
-2. **AWS Elastic Compute Cloud (EC@)**. AWS EC2 instance is used as bastion host to let the user interact with the Kafka service (via ssh) in the MSK since the MSK is located inside a private subnet to ensure the security aspect of the infrastructure. The bastion host created with `t2.micro` instance type and linux operating system. The `bastion.tftpl` is used as a template file to install required packages to run the producer and consumer code.
+2. **AWS Elastic Compute Cloud (EC2)**. AWS EC2 instance is used as bastion host to let the user interact with the Kafka service (via ssh) in the MSK since the MSK is located inside a private subnet to ensure the security aspect of the infrastructure. The bastion host created with `t2.micro` instance type and linux operating system. The `bastion.tftpl` is used as a template file to install required packages to run the producer and consumer code.
 
 ```tf
 resource "aws_instance" "bastion_host" {
