@@ -7,11 +7,11 @@ Assume that all the prerequisites listed in the root directory have been install
   ```bash
   cd kafka
   ```
-3. Create new python environment and install the dependencies:
+2. Create new python environment and install the dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-4. Create `.envrc` file to store environmental variables:
+3. Create `.envrc` file to store environmental variables:
 ```
 export API_KEY=<your-openweather-api-key>
 export LAT=6.1944
@@ -20,7 +20,7 @@ export KAFKA_TOPIC=<topic-name>
 export KAFKA_BROKER=<local-kafka-server>
 ```
   This variable will not be pushed to github, as it is already listed in the `.gitignore`.
-5. Allow direnv to access the `.envrc` file:
+4. Allow direnv to access the `.envrc` file:
 ```bash
 direnv allow
 ```
