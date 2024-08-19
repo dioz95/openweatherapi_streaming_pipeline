@@ -4,54 +4,54 @@ In this project, Terraform is used to deploy the whole infrastructure used to en
 <p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/flow_diagram.png" width="600" height="500" /></p>
 <p align="center"><strong>Fig 1.</strong>Infrastructure Diagram</p>
 
-The working data pipeline is built on top of this main AWS instances:
-1. **AWS Managed Streaming for Kafka (MSK)**. AWS MSK is used to store the streaming data from Open Weather API. This MSK service is created with `kafka.t3.small` instance type and 3 bootsrap servers:
+The working data pipeline is built on top of these main AWS instances:
+1. **AWS Managed Streaming for Kafka (MSK)**. AWS MSK is used to store the streaming data from Open Weather API. This MSK service is created with `kafka.t3.small` instance type and 3 bootstrap servers:
 
 ```tf
 resource "aws_msk_cluster" "kafka" {
-  cluster_name           = var.global_prefix
-  kafka_version          = "2.8.1"
-  number_of_broker_nodes = length(data.aws_availability_zones.available.names)
-  broker_node_group_info {
-    instance_type = "kafka.t3.small" # default value
-    storage_info {
-      ebs_storage_info {
-        volume_size = 1000
-      }
-    }
-    client_subnets = [aws_subnet.private_subnet[0].id,
-      aws_subnet.private_subnet[1].id,
-    aws_subnet.private_subnet[2].id]
-    security_groups = [aws_security_group.kafka.id]
-  }
-  encryption_info {
-    encryption_in_transit {
-      client_broker = "PLAINTEXT"
-    }
-    encryption_at_rest_kms_key_arn = aws_kms_key.kafka_kms_key.arn
-  }
-  configuration_info {
-    arn      = aws_msk_configuration.kafka_config.arn
-    revision = aws_msk_configuration.kafka_config.latest_revision
-  }
-  open_monitoring {
-    prometheus {
-      jmx_exporter {
-        enabled_in_broker = true
-      }
-      node_exporter {
-        enabled_in_broker = true
-      }
-    }
-  }
-  logging_info {
-    broker_logs {
-      cloudwatch_logs {
-        enabled   = true
-        log_group = aws_cloudwatch_log_group.kafka_log_group.name
-      }
-    }
-  }
+  cluster_name           = var.global_prefix
+  kafka_version          = "2.8.1"
+  number_of_broker_nodes = length(data.aws_availability_zones.available.names)
+  broker_node_group_info {
+    instance_type = "kafka.t3.small" # default value
+    storage_info {
+      ebs_storage_info {
+        volume_size = 1000
+      }
+    }
+    client_subnets = [aws_subnet.private_subnet[0].id,
+      aws_subnet.private_subnet[1].id,
+    aws_subnet.private_subnet[2].id]
+    security_groups = [aws_security_group.kafka.id]
+  }
+  encryption_info {
+    encryption_in_transit {
+      client_broker = "PLAINTEXT"
+    }
+    encryption_at_rest_kms_key_arn = aws_kms_key.kafka_kms_key.arn
+  }
+  configuration_info {
+    arn      = aws_msk_configuration.kafka_config.arn
+    revision = aws_msk_configuration.kafka_config.latest_revision
+  }
+  open_monitoring {
+    prometheus {
+      jmx_exporter {
+        enabled_in_broker = true
+      }
+      node_exporter {
+        enabled_in_broker = true
+      }
+    }
+  }
+  logging_info {
+    broker_logs {
+      cloudwatch_logs {
+        enabled   = true
+        log_group = aws_cloudwatch_log_group.kafka_log_group.name
+      }
+    }
+  }
 }
 ```
 
@@ -59,30 +59,30 @@ resource "aws_msk_cluster" "kafka" {
 
 ```tf
 resource "aws_instance" "bastion_host" {
-  depends_on             = [aws_msk_cluster.kafka]
-  ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.private_key.key_name
-  subnet_id              = aws_subnet.bastion_host_subnet.id
-  vpc_security_group_ids = [aws_security_group.bastion_host.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
-  user_data = templatefile("bastion.tftpl", {
-    bootstrap_server_1 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[0]
-    bootstrap_server_2 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[1]
-    bootstrap_server_3 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[2]
-    api_key            = var.api_key
-    lat                = var.lat
-    lon                = var.lon
-    kafka_topic        = var.kafka_topic
-    s3_bucket          = var.s3_bucket
-  })
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = 100
-  }
-  tags = {
-    Name = "bastion-host"
-  }
+  depends_on             = [aws_msk_cluster.kafka]
+  ami                    = data.aws_ami.amazon_linux_2023.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.private_key.key_name
+  subnet_id              = aws_subnet.bastion_host_subnet.id
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
+  user_data = templatefile("bastion.tftpl", {
+    bootstrap_server_1 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[0]
+    bootstrap_server_2 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[1]
+    bootstrap_server_3 = split(",", aws_msk_cluster.kafka.bootstrap_brokers)[2]
+    api_key            = var.api_key
+    lat                = var.lat
+    lon                = var.lon
+    kafka_topic        = var.kafka_topic
+    s3_bucket          = var.s3_bucket
+  })
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 100
+  }
+  tags = {
+    Name = "bastion-host"
+  }
 
 }
 ```
@@ -91,22 +91,22 @@ resource "aws_instance" "bastion_host" {
 
 ```tf
 resource "aws_s3_bucket" "weather_bucket" {
-  bucket = var.s3_bucket
+  bucket = var.s3_bucket
 
-  tags = {
-    Name        = "Weather bucket"
-    Environment = "Dev"
-  }
+  tags = {
+    Name        = "Weather bucket"
+    Environment = "Dev"
+  }
 }
 
 resource "aws_s3_object" "data" {
-  bucket = aws_s3_bucket.weather_bucket.id
-  key    = "data/"
+  bucket = aws_s3_bucket.weather_bucket.id
+  key    = "data/"
 }
 
 resource "aws_s3_object" "output" {
-  bucket = aws_s3_bucket.weather_bucket.id
-  key    = "output/"
+  bucket = aws_s3_bucket.weather_bucket.id
+  key    = "output/"
 }
 ```
 
@@ -114,108 +114,108 @@ resource "aws_s3_object" "output" {
 
 ```tf
 resource "aws_glue_catalog_database" "weather_athena_db" {
-  name = "weather_db"
+  name = "weather_db"
 }
 
 resource "aws_glue_catalog_table" "weather_table" {
-  database_name = aws_glue_catalog_database.weather_athena_db.name
-  name          = "weather_table_007"
-  description   = "table containing the data from OpenWeather API stored in S3"
+  database_name = aws_glue_catalog_database.weather_athena_db.name
+  name          = "weather_table_007"
+  description   = "table containing the data from OpenWeather API stored in S3"
 
-  table_type = "EXTERNAL_TABLE"
+  table_type = "EXTERNAL_TABLE"
 
-  parameters = {
-    EXTERNAL = "TRUE"
-  }
+  parameters = {
+    EXTERNAL = "TRUE"
+  }
 
-  storage_descriptor {
-    location      = "s3://${aws_s3_bucket.weather_bucket.bucket}/data/"
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+  storage_descriptor {
+    location      = "s3://${aws_s3_bucket.weather_bucket.bucket}/data/"
+    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
 
-    ser_de_info {
-      name                  = "s3-stream"
-      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
+    ser_de_info {
+      name                  = "s3-stream"
+      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
 
-      parameters = {
-        "serialization.format"  = 1
-        "ignore.malformed.json" = "TRUE"
-        "dots.in.keys"          = "FALSE"
-        "case.insensitive"      = "TRUE"
-        "mapping"               = "TRUE"
-      }
-    }
+      parameters = {
+        "serialization.format"  = 1
+        "ignore.malformed.json" = "TRUE"
+        "dots.in.keys"          = "FALSE"
+        "case.insensitive"      = "TRUE"
+        "mapping"               = "TRUE"
+      }
+    }
 
-    columns {
-      name = "coord"
-      type = "struct<lon:double,lat:double>"
-    }
+    columns {
+      name = "coord"
+      type = "struct<lon:double,lat:double>"
+    }
 
-    columns {
-      name = "weather"
-      type = "array<struct<id:int,main:string,description:string,icon:string>>"
-    }
+    columns {
+      name = "weather"
+      type = "array<struct<id:int,main:string,description:string,icon:string>>"
+    }
 
-    columns {
-      name = "base"
-      type = "string"
-    }
+    columns {
+      name = "base"
+      type = "string"
+    }
 
-    columns {
-      name = "main"
-      type = "struct<temp:double,feels_like:double,temp_min:double,temp_max:double,pressure:int,humidity:int,sea_level:int,grnd_level:int>"
-    }
+    columns {
+      name = "main"
+      type = "struct<temp:double,feels_like:double,temp_min:double,temp_max:double,pressure:int,humidity:int,sea_level:int,grnd_level:int>"
+    }
 
-    columns {
-      name = "visibility"
-      type = "int"
-    }
+    columns {
+      name = "visibility"
+      type = "int"
+    }
 
-    columns {
-      name = "wind"
-      type = "struct<speed:double,deg:int,gust:double>"
-    }
+    columns {
+      name = "wind"
+      type = "struct<speed:double,deg:int,gust:double>"
+    }
 
-    columns {
-      name = "rain"
-      type = "struct<1h:double>"
-    }
+    columns {
+      name = "rain"
+      type = "struct<1h:double>"
+    }
 
-    columns {
-      name = "clouds"
-      type = "struct<all:int>"
-    }
+    columns {
+      name = "clouds"
+      type = "struct<all:int>"
+    }
 
-    columns {
-      name = "dt"
-      type = "int"
-    }
+    columns {
+      name = "dt"
+      type = "int"
+    }
 
-    columns {
-      name = "sys"
-      type = "struct<type:int,id:int,country:string,sunrise:int,sunset:int>"
-    }
+    columns {
+      name = "sys"
+      type = "struct<type:int,id:int,country:string,sunrise:int,sunset:int>"
+    }
 
-    columns {
-      name = "timezone"
-      type = "int"
-    }
+    columns {
+      name = "timezone"
+      type = "int"
+    }
 
-    columns {
-      name = "id"
-      type = "int"
-    }
+    columns {
+      name = "id"
+      type = "int"
+    }
 
-    columns {
-      name = "name"
-      type = "string"
-    }
+    columns {
+      name = "name"
+      type = "string"
+    }
 
-    columns {
-      name = "cod"
-      type = "int"
-    }
-  }
+    columns {
+      name = "cod"
+      type = "int"
+    }
+  }
 }
 ```
 
@@ -223,17 +223,17 @@ resource "aws_glue_catalog_table" "weather_table" {
 
 ```tf
 resource "aws_athena_workgroup" "athena_wg" {
-  name = "athena"
+  name = "athena"
 
-  configuration {
-    enforce_workgroup_configuration    = true
-    publish_cloudwatch_metrics_enabled = true
+  configuration {
+    enforce_workgroup_configuration    = true
+    publish_cloudwatch_metrics_enabled = true
 
-    result_configuration {
-      output_location = "s3://${aws_s3_bucket.weather_bucket.bucket}/output/"
+    result_configuration {
+      output_location = "s3://${aws_s3_bucket.weather_bucket.bucket}/output/"
 
-    }
-  }
+    }
+  }
 }
 ```
 
@@ -266,14 +266,14 @@ terraform validate
 terraform plan
 ```
 
-5. Deploy the infrastucture:
+5. Deploy the infrastructure:
 
 ```bash
 terraform apply -auto-approve
 ```
 
 ## Documentation of a working system
-After running `terraform apply` and the infrastucture is successfully deployed, the working system can be tested in this following steps:
+After running `terraform apply` and the infrastructure is successfully deployed, the working system can be tested in these following steps:
 1. Go to Athena service and set the `Workgroup` to `athena` on the top right of the screen,
 
 <p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/set_athena_wg.png" /></p>
@@ -300,7 +300,7 @@ After running `terraform apply` and the infrastucture is successfully deployed, 
 <p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/s3_data.png" /></p>
 <p align="center"><strong>Fig 7.</strong>Data from the API stored in the S3</p>
 
-5. To see the query history, go to the  `weather-data-bucket-007` in the S3 and go inside the `output/` directory,
+5. To see the query history, go to the  `weather-data-bucket-007` in the S3 and go inside the `output/` directory,
 
 <p align="center"><img src="https://github.com/dioz95/openweatherapi_streaming_pipeline/blob/main/assets/s3_output.png" /></p>
 <p align="center"><strong>Fig 8.</strong>Output from the Athena query</p>
