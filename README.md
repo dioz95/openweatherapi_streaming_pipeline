@@ -1,4 +1,6 @@
-# Streaming Weather Data Pipeline
+# Option 2 - Streaming weather data pipeline with Amazon Athena to query result
+
+## Description
 This repository contains an effort to create a streaming data pipeline using AWS Managed Streaming for Apache Kafka (MSK) and Terraform. Current weather data from [Open Weather API](https://openweathermap.org/current) is used as a streaming data source to be written continuously to a Kafka topic. The end goal of this project is to make the data from the API query-able in the AWS Athena.
 
 This repository has 3 major directories that you can visit in the following order:
@@ -18,3 +20,22 @@ This project is built and tested on top of these following dependencies:
 - `kafka-python 2.0.2` (pip) --> kafka--python 2.0.2 acts as SDK to work with Kafka using python programming language.
 - `requests 2.32.3` (pip) --> request 2.32.3 is used to fetch the data from Open Weather API.
 - `direnv 2.34.0` -->  direnv 2.34.0 is used as a shell extension that can load and unload environment variables depending on the current directory.
+
+## Requirements
+The dependencies for local deployment are available in the `/kafka/requirements.txt`. Please run this code to install,
+```bash
+cd kafka
+pip install -r requirements.txt
+```
+For the terraform deployment, all the dependencies are defined in the `/terraform/bastion.tftpl` and will be automatically installed in the EC2 instance when the infrastructure deployed correctly.
+
+## Design
+Please refer to the `README.md` file in the `/terraform` for the complete design of the project.
+
+## Developer Guide
+To reproduce the code, please see the instructions written in:
+- Local deployment: `/kafka/README.md`
+- Terraform deployment: `/terraform/README.md`
+
+# Author
+Feel free to ask and/or give any feedback related to the project by writing to `advendio.desandros@edu.dsti.institute`
